@@ -1,0 +1,35 @@
+#! /usr/bin/env python3
+
+import argparse
+import os
+import subprocess as sp
+
+from evdev import InputDevice, list_devices
+
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("mouse_name")
+    p.add_argument("fast_rate", type=float)
+    p.add_argument("slow_rate", type=float)
+    return p.parse_args()
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    dev = None
+    for path in list_devices():
+        dev0 = InputDevice(path)
+        if dev0.name == args.mouse_name:
+            dev = dev0
+            break
+
+    if dev is None:
+        raise RuntimeError("{}: no mouse device found".format(args.mouse_name))
+
+    cmd = [
+        os.path.join(os.path.dirname(__file__), "dpi-lower.bin"),
+        dev.path, str(args.fast_rate), str(args.slow_rate)]
+    print(" ".join(cmd))
+    sp.Popen(cmd)
+
+    dev.close()
